@@ -57,8 +57,8 @@ public class FetchSourcesApplication {
 	}
 	public static void main(String[] args) {
 
-		SaveAndLoadDisctint();
-		if(true)return;
+		//SaveAndLoadDisctint();
+		//if(true)return;
 		String baseURL = "https://newsapi.org/v2/";
 		String everythingEndpoint = "everything?";
 		String sourcesEndpoint = "sources?";
@@ -122,7 +122,7 @@ public class FetchSourcesApplication {
 					
 					if(jsonObject.getString("status").equals("error")) {
 						String code=jsonObject.getString("code");
-						System.out.println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx   "+code);
+						System.out.println("Code is   "+code);
 						if(code.equals("rateLimited")) {
 							arrKey[0].noOfCalls=100000;
 							Arrays.sort(arrKey,new Comparator<KeysCall>() {
@@ -181,7 +181,6 @@ public class FetchSourcesApplication {
 						
 					try {
 						System.out.println("ascii completed");
-						System.out.println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 						//Thread.sleep(3000);
 						toBeSearchedASCII++;
 						String args1[]=new String[1];
