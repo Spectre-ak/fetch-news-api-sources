@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Stack;
 import java.util.TreeSet;
 
 import org.apache.http.HttpResponse;
@@ -55,6 +56,7 @@ public class FetchSourcesApplication {
 		
 		
 	}
+	
 	public static void main(String[] args) {
 
 		//SaveAndLoadDisctint();
@@ -64,11 +66,15 @@ public class FetchSourcesApplication {
 		String sourcesEndpoint = "sources?";
 		KeysCall arrKey[]=getKeysSorted();
 		
-
+		Stack<String> keywords=LoadKeywords();
+		System.out.println(keywords.size());
+	//	if(true)return;
 		
 		//params
 		int pageCount=1;
-		String excludeDomains=getDomainsAsCommaSeparated(LoadSource());
+		TreeSet<String> sourceSet=LoadSource();
+		String excludeDomains=getDomainsAsCommaSeparated(sourceSet);
+		
 		TreeSet<String> currentExtractedDomainsList=new TreeSet<>();
 		
 		System.out.println(excludeDomains);
@@ -77,23 +83,17 @@ public class FetchSourcesApplication {
 		
 		
 // <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN""http://www.w3.org/TR/html4/strict.dtd"><HTML><HEAD><TITLE>Request URL Too Long</TITLE><META HTTP-EQUIV="Content-Type" Content="text/html; charset=us-ascii"></HEAD><BODY><h2>Request URL Too Long</h2><hr><p>HTTP Error 414. The request URL is too long.</p></BODY></HTML>
-		int toBeSearchedASCII;
-		char toBeSearched;
-		if(args.length>0 && args[0]!=null) {
-			toBeSearchedASCII=Integer.parseInt(args[0]);
-			toBeSearched=(char)toBeSearchedASCII;
-		}
-		else {
-			toBeSearchedASCII=97;
-			toBeSearched=(char)toBeSearchedASCII;
-		}
 		
 		
+		String keyword=keywords.pop();
+		
+		while(true) {
+			
 		try {
 			System.out.println(excludeDomains.split(",").length);
 			
 		//	int breaker=0;if(true)return;
-			while(true) {
+			
 				//breaker++;if(breaker==10)break;
 				try {
 					
@@ -103,7 +103,7 @@ public class FetchSourcesApplication {
 					pageParam+=pageCount;
 					urlString+="&"+pageParam;
 					
-					String qParam="qInTitle=";qParam+=toBeSearched;
+					String qParam="q=";qParam+=keyword;
 					//String qParam="q=";qParam+=toBeSearched;
 					urlString+="&"+qParam;
 					
@@ -122,7 +122,7 @@ public class FetchSourcesApplication {
 					
 					if(jsonObject.getString("status").equals("error")) {
 						String code=jsonObject.getString("code");
-						System.out.println("Code is   "+code);
+						System.out.println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx   "+code);
 						if(code.equals("rateLimited")) {
 							arrKey[0].noOfCalls=100000;
 							Arrays.sort(arrKey,new Comparator<KeysCall>() {
@@ -143,8 +143,15 @@ public class FetchSourcesApplication {
 							
 							//set page to 1
 							//add a new domain to be excluded
+							if(currentExtractedDomainsList.size()==0) {
+								pageCount=1;
+								keyword=keywords.pop();
+								continue;
+							}
 							pageCount=1;
-							String currDomains=getDomainsAsCommaSeparated(currentExtractedDomainsList);
+							keyword=keywords.pop();
+							
+							String currDomains=getDomainsAsCommaSeparatedFromCurrent(currentExtractedDomainsList);
 							System.out.println("new domains as comma separated "+currDomains);
 							excludeDomains+=","+currDomains;
 							System.out.println("excuded new domains "+excludeDomains);
@@ -160,45 +167,36 @@ public class FetchSourcesApplication {
 						JSONObject jsonObject2 = jsonArray.getJSONObject(i);
 						String cleaned=getCleanedURL(jsonObject2.getString("url"));
 						System.out.println(cleaned);
-						SaveSource(cleaned);
-						currentExtractedDomainsList.add(cleaned);
-						arrKey[0].noOfCalls++;
+						if(sourceSet.add(cleaned)) {
+							SaveSource(cleaned);
+							currentExtractedDomainsList.add(cleaned);
+						}
+						
+						
 					}
-
+					System.out.println();
+					arrKey[0].noOfCalls++;
 					pageCount++;
 					
 					//testing
 					System.out.println(currentExtractedDomainsList);
-					
+					if(currentExtractedDomainsList.size()==0) {
+						keyword=keywords.pop();
+						pageCount=1;
+					}
 					//break;
 					
 					
 				} catch (Exception e0) {
 					e0.printStackTrace();
-					if(toBeSearchedASCII>=122) {
-						return;
-					}
-						
-					try {
-						System.out.println("ascii completed");
-						//Thread.sleep(3000);
-						toBeSearchedASCII++;
-						String args1[]=new String[1];
-						args1[0]=toBeSearchedASCII+"";
-						main(args1);
-					}
-					catch (Exception e) {
-						e.printStackTrace();
-						System.out.println("error occurred on recursion main returning/breaking");
-						return;
-					}
-					
-					
-					
+					keyword=keywords.pop();
+					excludeDomains=excludeDomains.substring(0,excludeDomains.length()/2);
+					if(excludeDomains.charAt(excludeDomains.length())==',')
+						excludeDomains=excludeDomains.substring(0,excludeDomains.length()-1);
 				}
 				
 				
-			}
+			
 			
 			
 			
@@ -206,7 +204,14 @@ public class FetchSourcesApplication {
 			// TODO: handle exception
 			e.printStackTrace();
 			System.out.println("otside while");
+			excludeDomains=excludeDomains.substring(0,excludeDomains.length()/2);
+			if(excludeDomains.charAt(excludeDomains.length()-1)==',')
+				excludeDomains=excludeDomains.substring(0,excludeDomains.length()-1);
+			
 		}
+		
+		
+	}
 		// SpringApplication.run(FetchSourcesApplication.class, args);
 	}
 
@@ -254,6 +259,23 @@ public class FetchSourcesApplication {
 
 	}
 
+	static Stack<String> LoadKeywords() {
+		try {
+			Scanner sc=new Scanner(new File("demofile2.txt"));
+			Stack<String> stack=new Stack<>();
+			while(sc.hasNextLine()) {
+				stack.add(sc.nextLine());
+			}
+			sc.close();
+			return stack;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+
+	}
+	
 	static void SaveSource(String url) {
 
 		try {
@@ -321,13 +343,24 @@ public class FetchSourcesApplication {
 		String reString="";
 		int counter=0;
 		for(String s:list) {
+			reString+=s+",";
 			counter++;
 			if(counter>=list.size()/2)break;
-			reString+=s+",";
-		}
 			
+		}
+		if(reString.length()==0)return "";	
 		
 		return reString.substring(0,reString.length()-1);
 	}
-	
+	static String getDomainsAsCommaSeparatedFromCurrent(TreeSet<String> list) {
+		String reString="";
+		int counter=0;
+		for(String s:list) {
+			reString+=s+",";
+			
+		}
+		if(reString.length()==0)return "";	
+		
+		return reString.substring(0,reString.length()-1);
+	}
 }
