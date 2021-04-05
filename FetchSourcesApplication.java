@@ -261,7 +261,7 @@ public class FetchSourcesApplication {
 
 	static Stack<String> LoadKeywords() {
 		try {
-			Scanner sc=new Scanner(new File("demofile2.txt"));
+			Scanner sc=new Scanner(new File("keywords2.txt"));
 			Stack<String> stack=new Stack<>();
 			while(sc.hasNextLine()) {
 				stack.add(sc.nextLine());
