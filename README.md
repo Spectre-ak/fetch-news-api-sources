@@ -10,4 +10,4 @@ currently fetched 5,731 news sources -> this approach uses keywords based filter
 
 #### 3,622 news sources -> [src3.txt](https://github.com/Spectre-ak/fetch-news-api-sources/blob/main/src3.txt)  (using keywords search from [keywords.txt](https://github.com/Spectre-ak/fetch-news-api-sources/blob/main/keywords.txt) )
 
-#### 5,731 sources -> [src4.txt](https://github.com/Spectre-ak/fetch-news-api-sources/blob/main/src4.txt) using [keywords2.txt](https://github.com/Spectre-ak/fetch-news-api-sources/blob/main/keywords2.txt)
+#### 5,731 news sources -> [src4.txt](https://github.com/Spectre-ak/fetch-news-api-sources/blob/main/src4.txt) using [keywords2.txt](https://github.com/Spectre-ak/fetch-news-api-sources/blob/main/keywords2.txt)
